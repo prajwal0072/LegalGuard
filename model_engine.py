@@ -1,13 +1,11 @@
 import torch
 from transformers import pipeline
 
-# Load Legal-BERT locally. This runs on your CPU.
-# The first time you run this, it will download ~400MB to your machine.
+# Load Legal-BERT locally.
+# The 'device' parameter helps if you have a GPU, otherwise it defaults to CPU.
 classifier = pipeline("text-classification", model="nlpaueb/legal-bert-base-uncased")
 
 def analyze_contract(text):
-    # YOUR CUSTOM DECISION RULES (The "Judge")
-    # This fulfills the "No API for decision making" rule.
     RULES = {
         "arbitration": {"risk": "High", "msg": "Forced Arbitration: You lose your right to a court trial."},
         "automatically renew": {"risk": "Medium", "msg": "Auto-Renewal: Contract extends without manual consent."},
@@ -17,31 +15,33 @@ def analyze_contract(text):
         "indemnify": {"risk": "Medium", "msg": "Indemnification: You may be liable for their legal costs."}
     }
 
-    # Split text into sentences
-    sentences = [s.strip() for s in text.split('.') if len(s) > 15]
+    sentences = [s.strip() for s in text.replace('\n', ' ').split('.') if len(s) > 20]
     findings = []
     risk_score = 0
 
     for sent in sentences:
         for key, data in RULES.items():
             if key in sent.lower():
-                # Verify legal context using the local BERT model
+                # Truncate to 512 tokens to avoid BERT errors
+                # We use the AI to ensure the keyword is being used in a 'Legal' way
                 ai_check = classifier(sent[:512])[0]
                 
-                # If the AI confirms this is legal-heavy text
+                # If BERT confirms this is significant legal text
                 if ai_check['score'] > 0.3:
                     points = 35 if data['risk'] == "High" else 15
                     risk_score += points
                     findings.append({
                         "label": data['risk'],
                         "issue": data['msg'],
-                        "text": sent[:150] + "..."
+                        "text": sent[:150] + "..." # Snippet for the UI
                     })
+                    break 
 
-    # Final Decision made by YOUR code logic
+    # Logic-based verdict
     verdict = "⚠️ UNSAFE" if risk_score > 50 else "✅ SAFE"
+    
     return {
         "verdict": verdict, 
-        "score": min(risk_score, 100), 
+        "score": min(risk_score, 100), # Cap at 100%
         "flags": findings
     }
