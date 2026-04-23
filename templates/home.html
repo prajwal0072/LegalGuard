@@ -77,6 +77,11 @@
                     <h3>Drag & drop your PDF</h3>
                     <p>or click to browse</p>
                     <input type="file" id="fileInput" name="contract_file" hidden accept=".pdf">
+                    <div id="filePreview" style="display:none; margin-top:20px;">
+                        <p id="fileName" style="font-weight:600;"></p>
+                        <p id="fileSize" style="font-size:12px; opacity:0.6;"></p>
+                        <span onclick="removeFile(event)" style="cursor:pointer; color:red;">✖ Remove</span>
+                    </div>
                 </div>
 
                 <textarea id="pasteArea" name="contract_text" placeholder="Paste your contract text here..."></textarea>
@@ -130,6 +135,46 @@
 
     </section>
 
+    <div class="loading-screen" id="loadingScreen">
+
+        <div class="loading-inner">
+
+            <div class="loading-steps" id="loadingSteps">
+
+                <div class="ls-step" data-step="0">
+                    <div class="ls-icon">
+                        <i class="ri-file-search-line"></i>
+                    </div>
+                    <span class="ls-label">Parsing document</span>
+                </div>
+
+                <div class="ls-step" data-step="1">
+                    <div class="ls-icon">
+                        <i class="ri-file-list-3-line"></i>
+                    </div>
+                    <span class="ls-label">Analyzing clauses</span>
+                </div>
+
+                <div class="ls-step" data-step="2">
+                    <div class="ls-icon">
+                        <i class="ri-shield-line"></i>
+                    </div>
+                    <span class="ls-label">Detecting risks</span>
+                </div>
+
+                <div class="ls-step" data-step="3">
+                    <div class="ls-icon">
+                        <i class="ri-loader-4-line"></i>
+                    </div>
+                    <span class="ls-label">Generating report</span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 
 </body>
 
@@ -156,5 +201,72 @@
         uploadTab.classList.remove("active");
     };
 </script>
+
+<script>
+const scanBtn = document.querySelector(".scan-btn");
+
+scanBtn.onclick = () => {
+    const loadingScreen = document.getElementById("loadingScreen");
+    loadingScreen.classList.add("active");
+
+    const steps = document.querySelectorAll(".ls-step");
+
+    // Reset all steps
+    steps.forEach(step => step.classList.remove("done", "active"));
+
+    let i = 0;
+
+    function runStep() {
+        if (i > 0) {
+            steps[i - 1].classList.remove("active");
+            steps[i - 1].classList.add("done");
+            // Replace spinning icon with checkmark on done
+            const icon = steps[i - 1].querySelector(".ls-icon i");
+            icon.className = "ri-check-line";
+        }
+
+        if (i < steps.length) {
+            steps[i].classList.add("active");
+            // Spin the last step's icon
+            if (i === steps.length - 1) {
+                const icon = steps[i].querySelector(".ls-icon i");
+                icon.classList.add("spin");
+            }
+            i++;
+            setTimeout(runStep, 1500);
+        } else {
+            console.log("Analysis Complete");
+        }
+    }
+
+    runStep();
+};
+</script>
+
+<script>
+    const fileInput = document.getElementById("fileInput");
+    const filePreview = document.getElementById("filePreview");
+    const fileName = document.getElementById("fileName");
+    const fileSize = document.getElementById("fileSize");
+
+    fileInput.addEventListener("change", function () {
+        const file = this.files[0];
+
+        if (file) {
+            filePreview.style.display = "block";
+
+            fileName.textContent = file.name;
+
+            const sizeKB = (file.size / 1024).toFixed(1);
+            fileSize.textContent = sizeKB + " KB";
+        }
+    });
+
+    function removeFile(event) {
+        event.stopPropagation(); // prevent upload click
+        fileInput.value = "";
+        filePreview.style.display = "none";
+    }
+    </script>
 
 </html>

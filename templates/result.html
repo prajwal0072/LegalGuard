@@ -3,116 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis Result | LegalGuard</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Analysis Results | LegalGuard</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css" rel="stylesheet"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_result.css') }}">
 </head>
 <body>
 
-<section class="results-section" style="padding-top:100px;">
+<div class="page-wrap">
 
-    <div class="results-header">
-        <h2>Analysis Results</h2>
-        <a href="/" class="new-analysis-btn">← New Analysis</a>
-    </div>
+    <!-- ── HEADER ─────────────────────────────────────────────────── -->
+    <header class="results-header">
+        <h1>Analysis Results</h1>
+        <a href="/" class="new-analysis-btn">
+            <i class="ri-refresh-line"></i> New Analysis
+        </a>
+    </header>
 
     {% if error %}
-        <div class="verdict-card high">
-            <h2 style="color:#ef4444;">Error</h2>
-            <p>{{ error }}</p>
-        </div>
+    <div class="verdict-card error-card">
+        <p class="error-msg">{{ error }}</p>
+    </div>
     {% else %}
 
-    <!-- ===== VERDICT ===== -->
-    <div class="verdict-card {% if report.score > 50 %}high{% else %}safe{% endif %}">
+    {% set is_high = report.score > 50 %}
+    <div class="verdict-card {% if is_high %}high{% else %}safe{% endif %}">
 
-        <div class="verdict-badge">
-            {% if report.score > 50 %}
-                High Risk Contract
-            {% else %}
-                Safe Contract
-            {% endif %}
+        <!-- Shield icon -->
+        <div class="verdict-icon {% if is_high %}high{% else %}safe{% endif %}">
+            <i class="ri-shield-{% if is_high %}cross{% else %}check{% endif %}-line"></i>
         </div>
 
-        <!-- Score Circle -->
+        <!-- Donut ring -->
         <div class="score-ring-wrap">
-            <svg class="score-ring" viewBox="0 0 120 120">
-                <circle class="ring-bg" cx="60" cy="60" r="50"/>
-                <circle class="ring-fill"
-                        cx="60" cy="60" r="50"
-                        stroke-dasharray="314"
-                        stroke-dashoffset="{{ 314 - (report.score * 3.14) }}">
-                </circle>
-            </svg>
-
-            <div class="score-number-wrap">
-                <span class="score-number">{{ report.score }}</span>
-                <span class="score-label">Risk Score</span>
+            <div class="score-center">
+                <span class="score-num {% if is_high %}high{% else %}safe{% endif %}">{{ report.score }}</span>
+                <span class="score-lbl">Risk Score</span>
             </div>
         </div>
 
-        <p class="verdict-desc">
-            {% if report.score > 50 %}
-                This contract contains multiple concerning clauses that may impact your rights.
-            {% else %}
-                No major red flags detected. Review the findings below for minor issues.
-            {% endif %}
-        </p>
+        <!-- Right text block -->
+        <div class="verdict-text">
+            <p class="verdict-desc">
+                {% if is_high %}
+                    This contract contains multiple concerning clauses that may impact your rights.
+                {% else %}
+                    No major red flags detected. Review the findings below for minor issues.
+                {% endif %}
+            </p>
+
+            <!-- Risk chips inline -->
+            <div class="chip-row">
+                {% set high_count = report.flags | selectattr("label","equalto","High") | list | length %}
+                {% set med_count  = report.flags | selectattr("label","equalto","Medium") | list | length %}
+                {% set low_count  = report.flags | selectattr("label","equalto","Low") | list | length %}
+                {% if high_count > 0 %}
+                    <span class="chip high">{{ high_count }} High Risk{% if high_count > 1 %}s{% endif %}</span>
+                {% endif %}
+                {% if med_count > 0 %}
+                    <span class="chip medium">{{ med_count }} Medium Risk{% if med_count > 1 %}s{% endif %}</span>
+                {% endif %}
+                {% if low_count > 0 %}
+                    <span class="chip low">{{ low_count }} Low Risk</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Bottom badge label -->
+        <div class="verdict-badge {% if is_high %}high{% else %}safe{% endif %}">
+            {% if is_high %}High Risk Contract{% else %}Safe Contract{% endif %}
+        </div>
 
     </div>
 
-    <!-- ===== RISK COUNTS ===== -->
-    <div class="risk-count-row">
-        {% set high = report.flags | selectattr("label","equalto","High") | list | length %}
-        {% set medium = report.flags | selectattr("label","equalto","Medium") | list | length %}
-        {% set low = report.flags | selectattr("label","equalto","Low") | list | length %}
+    <!-- ── RISK DISTRIBUTION ──────────────────────────────────────── -->
+    <div class="dist-card">
+        <h2 class="section-title">Risk Distribution</h2>
 
-        {% if high > 0 %}
-            <span class="risk-count-chip high">{{ high }} High Risk</span>
-        {% endif %}
-        {% if medium > 0 %}
-            <span class="risk-count-chip medium">{{ medium }} Medium Risk</span>
-        {% endif %}
-        {% if low > 0 %}
-            <span class="risk-count-chip low">{{ low }} Low Risk</span>
-        {% endif %}
-    </div>
+        <div class="dist-body">
 
-    <!-- ===== FINDINGS ===== -->
-    <div class="findings-section" style="margin-top:30px;">
-        <h3>Key Risk Findings</h3>
+            <!-- Donut chart -->
+            <div class="donut-wrap">
+                <svg id="donutSvg" viewBox="0 0 160 160" width="180" height="180"></svg>
+                <div class="donut-legend" id="donutLegend"></div>
+            </div>
 
-        {% for f in report.flags %}
-        <div class="finding-card {{ f.label.lower() }}">
+            <!-- Bar chart + counts -->
+            <div class="bars-wrap">
+                <div id="distBars"></div>
 
-            <div class="finding-header">
-                <div class="finding-icon">
-                    ⚠
-                </div>
-
-                <div class="finding-info">
-                    <div class="finding-risk-label">
-                        {{ f.label }} Risk
+                <div class="count-row">
+                    <div class="count-item">
+                        <span class="count-num high">{{ high_count }}</span>
+                        <span class="count-lbl">High Risk</span>
                     </div>
-                    <div class="finding-title">
-                        {{ f.issue }}
+                    <div class="count-item">
+                        <span class="count-num medium">{{ med_count }}</span>
+                        <span class="count-lbl">Medium Risk</span>
+                    </div>
+                    <div class="count-item">
+                        <span class="count-num low">{{ low_count }}</span>
+                        <span class="count-lbl">Low Risk</span>
                     </div>
                 </div>
             </div>
 
-            <div class="finding-body" style="display:block;">
-                {{ f.text }}
+        </div>
+    </div>
+
+    <!-- ── KEY FINDINGS ───────────────────────────────────────────── -->
+    <h2 class="section-title findings-title">Key Risk Findings</h2>
+
+    <div class="findings-list">
+        {% for f in report.flags %}
+        <div class="finding-card {{ f.label | lower }}" onclick="this.classList.toggle('open')">
+
+            <div class="finding-left">
+                <div class="finding-sq {{ f.label | lower }}">
+                    {% if f.label == 'High' %}
+                        <i class="ri-scales-3-line"></i>
+                    {% elif f.label == 'Medium' %}
+                        <i class="ri-time-line"></i>
+                    {% else %}
+                        <i class="ri-shield-line"></i>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="finding-body">
+                <div class="finding-risk {{ f.label | lower }}">
+                    <i class="ri-error-warning-line"></i> {{ f.label }} Risk
+                </div>
+                <div class="finding-title">{{ f.issue }}</div>
+                <div class="finding-text">{{ f.text }}</div>
+            </div>
+
+            <div class="finding-chevron">
+                <i class="ri-arrow-down-s-line"></i>
             </div>
 
         </div>
         {% endfor %}
+    </div>
 
+    <!-- Privacy note -->
+    <div class="privacy-note">
+        <i class="ri-shield-line"></i>
+        Your data is processed locally. No data is stored on our servers.
     </div>
 
     {% endif %}
 
-</section>
+</div>
+
+
+<script>
+// ── Build donut chart ────────────────────────────────────────────────
+(function() {
+    {% set high_c = report.flags | selectattr("label","equalto","High")   | list | length %}
+    {% set med_c  = report.flags | selectattr("label","equalto","Medium") | list | length %}
+    {% set low_c  = report.flags | selectattr("label","equalto","Low")    | list | length %}
+
+    const high = {{ high_c }}, med = {{ med_c }}, low = {{ low_c }};
+    const total = high + med + low || 1;
+    const cx = 80, cy = 80, r = 55, sw = 22;
+    const circ = 2 * Math.PI * r;
+
+    const slices = [
+        { n: high, color: '#ef4444' },
+        { n: med,  color: '#f59e0b' },
+        { n: low,  color: '#3b82f6' }
+    ];
+
+    let offset = 0;
+    let paths = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="${sw}"/>`;
+    slices.forEach(s => {
+        const pct  = s.n / total;
+        const dash = pct * circ;
+        const rot  = offset * 360 - 90;
+        offset += pct;
+        paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${s.color}" stroke-width="${sw}"
+            stroke-dasharray="${dash} ${circ - dash}"
+            transform="rotate(${rot}, ${cx}, ${cy})"/>`;
+    });
+    document.getElementById('donutSvg').innerHTML = paths;
+
+    document.getElementById('donutLegend').innerHTML = `
+        <div class="leg-item"><span class="leg-dot" style="background:#ef4444"></span>High Risk</div>
+        <div class="leg-item"><span class="leg-dot" style="background:#f59e0b"></span>Medium Risk</div>
+        <div class="leg-item"><span class="leg-dot" style="background:#3b82f6"></span>Low Risk</div>
+    `;
+
+    // Bars
+    const bars = [
+        { label: 'High',   n: high, cls: 'high'   },
+        { label: 'Medium', n: med,  cls: 'medium'  },
+        { label: 'Low',    n: low,  cls: 'low'     }
+    ];
+    document.getElementById('distBars').innerHTML = bars.map(b => `
+        <div class="bar-row">
+            <span class="bar-lbl">${b.label}</span>
+            <div class="bar-track">
+                <div class="bar-fill ${b.cls}" style="width:0" data-pct="${b.n / total * 100}"></div>
+            </div>
+        </div>
+    `).join('');
+
+    requestAnimationFrame(() => {
+        document.querySelectorAll('.bar-fill').forEach(el => {
+            el.style.width = el.dataset.pct + '%';
+        });
+    });
+})();
+</script>
 
 </body>
 </html>
