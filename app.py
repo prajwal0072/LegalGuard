@@ -52,6 +52,11 @@ def upload():
     return render_template("result.html", report=report)
 
 
+@app.route("/home")
+def home():
+    return render_template("home.html")
+
+
 if __name__ == "__main__":
     # debug=True auto-reloads on file changes during development
     app.run(debug=True, port=5000)

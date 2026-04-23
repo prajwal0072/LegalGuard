@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LegalGuard | AI Contract Auditor</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.9.0/fonts/remixicon.css" rel="stylesheet"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style1.css') }}">
+</head>
+
+<body>
+    <section id="hero" class="hero">
+        <div class="blank1"></div>
+        <div class="logo" id="center">
+            <i class="ri-shield-line"></i>
+            <p>LegalGuard</p>
+        </div>
+        <div id="center">
+            <div class="head">
+                Understand Any<br>
+                <span class="gradient-text">Contract</span>  <span class="gradient-text-purple">in Seconds</span>
+            </div>
+        </div>
+        <div class="definition" id="center">
+            <p>AI-powered risk detection for legal documents. Spot hidden clauses, unfair terms, and potential issues before you sign.</p>
+        </div>
+        <div class="nextpage" id="center">
+            <a href="#upload" class="cta-btn" id="center">
+                <p>Analyze Contract</p>
+            </a>
+        </div>
+        <p class="line" id="center">No signup required       ·       Results in seconds</p>
+
+        <div class="hero-tags" id="center">
+            <span class="tag">Risk Detection</span>
+            <span class="tag">Clause Analysis</span>
+            <span class="tag">Plain English Summaries</span>
+        </div>
+
+        <div class="scroll-hint">
+            <span>Scroll to analyze</span>
+            <i class="ri-arrow-down-line"></i>
+        </div>
+    </section>
+
+    <section id="upload" class="upload-section">
+
+        <div class="bg-blur"></div>
+        <div class="bg-blur blur2"></div>
+
+        <div class="blank1"></div>
+        <div class="head2" id="center">Upload Your Contract</div>
+        <div class="text" id="center">
+            Drag and drop a PDF or paste your contract text below
+        </div>
+
+        <div class="upload-container">
+
+            <div class="toggle">
+                <button class="active" id="uploadTab">
+                    <i class="ri-upload-line"></i> Upload PDF
+                </button>
+                <button id="pasteTab">
+                    <i class="ri-file-text-line"></i> Paste Text
+                </button>
+            </div>
+
+            <div class="upload-box" id="uploadBox">
+                <i class="ri-upload-cloud-2-line icon"></i>
+                <h3>Drag & drop your PDF</h3>
+                <p>or click to browse</p>
+                <input type="file" hidden>
+            </div>
+
+            <textarea id="pasteArea" placeholder="Paste your contract text here..."></textarea>
+
+            <button class="scan-btn">
+                <i class="ri-sparkling-line"></i> Scan Contract
+            </button>
+
+        </div>
+    </section>
+
+    <section class="security">
+
+        <h2>Built for Trust & Security</h2>
+        <p class="subtitle">
+            Your legal documents deserve the highest level of protection. Here's how we ensure your data stays safe.
+        </p>
+
+        <div class="cards">
+
+            <div class="card">
+                <i class="ri-lock-line icon"></i>
+                <h3>End-to-End Encryption</h3>
+                <p>Your documents are encrypted in transit and at rest.</p>
+            </div>
+
+            <div class="card">
+                <i class="ri-shield-line icon"></i>
+                <h3>Privacy First</h3>
+                <p>We never store your contract data on our servers.</p>
+            </div>
+
+            <div class="card">
+                <i class="ri-flashlight-line icon"></i>
+                <h3>Instant Analysis</h3>
+                <p>Get comprehensive results in under 30 seconds.</p>
+            </div>
+
+            <div class="card">
+                <i class="ri-global-line icon"></i>
+                <h3>Multi-Language</h3>
+                <p>Supports contracts in 50+ languages worldwide.</p>
+            </div>
+
+        </div>
+
+        <div class="badge">
+            <i class="ri-shield-check-line"></i>
+            100% Private · No data collection · No third-party sharing
+        </div>
+
+    </section>
+
+
+</body>
+
+<script>
+const uploadTab = document.getElementById("uploadTab");
+const pasteTab = document.getElementById("pasteTab");
+
+const uploadBox = document.getElementById("uploadBox");
+const pasteArea = document.getElementById("pasteArea");
+
+uploadTab.onclick = () => {
+    uploadBox.style.display = "block";
+    pasteArea.style.display = "none";
+
+    uploadTab.classList.add("active");
+    pasteTab.classList.remove("active");
+};
+
+pasteTab.onclick = () => {
+    uploadBox.style.display = "none";
+    pasteArea.style.display = "block";
+
+    pasteTab.classList.add("active");
+    uploadTab.classList.remove("active");
+};
+</script>
+
+</html>
