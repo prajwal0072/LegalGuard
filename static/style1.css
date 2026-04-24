@@ -484,6 +484,16 @@ a {
     animation: spin 0.9s linear infinite;
 }
 
+.error-box {
+    margin-top: 15px;
+    background: rgba(255, 77, 77, 0.1);
+    color: #ff4d4d;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+}
+
 @keyframes spin {
     to { transform: rotate(360deg); }
 }

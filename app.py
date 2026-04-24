@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import get_connection, create_tables
+from flask import Flask, request, jsonify, render_template, redirect, flash
 import fitz
 from model_engine import analyze_contract
 
@@ -17,6 +18,15 @@ def add_cors(response):
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     return response
+app.secret_key = "supersecretkey"
+
+# # ── Allow the browser to talk to Flask during local dev ──────────────────────
+# @app.after_request
+# def add_cors(response):
+#     response.headers["Access-Control-Allow-Origin"]  = "*"
+#     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+#     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+#     return response
 
 
 # ── Pages ─────────────────────────────────────────────────────────────────────
@@ -117,14 +127,29 @@ def analyze():
     if "contract_file" in request.files:
         file = request.files["contract_file"]
         if file.filename != "" and file.filename.endswith(".pdf"):
+    
+    pasted_text = request.form.get('contract_text')
+
+    if pasted_text and pasted_text.strip():
+        text_content = pasted_text
+
+    if 'contract_file' in request.files:
+        file = request.files['contract_file']
+        if file.filename != '' and file.filename.endswith('.pdf'):
             doc = fitz.open(stream=file.read(), filetype="pdf")
             text_content = "".join([page.get_text() for page in doc])
 
+    # 🔴 THIS IS THE FIX
     if not text_content:
         return render_template("home.html", error="No content provided or invalid file type.")
 
     results = analyze_contract(text_content)
     return render_template("result.html", report=results)
+        return render_template("home.html", error="Please upload a PDF or paste contract text before submitting.")  
+
+    results = analyze_contract(text_content)
+
+    return render_template('result.html', report=results)
 
 
 if __name__ == "__main__":

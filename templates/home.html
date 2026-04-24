@@ -86,6 +86,12 @@
 
                 <textarea id="pasteArea" name="contract_text" placeholder="Paste your contract text here..."></textarea>
 
+                {% if error %}
+                <div class="error-box">
+                    {{ error }}
+                </div>
+                {% endif %}
+
                 <button type="submit" class="scan-btn">
                     <i class="ri-sparkling-line"></i> Scan Contract
                 </button>
@@ -203,44 +209,44 @@
 </script>
 
 <script>
-const scanBtn = document.querySelector(".scan-btn");
+    const scanBtn = document.querySelector(".scan-btn");
 
-scanBtn.onclick = () => {
-    const loadingScreen = document.getElementById("loadingScreen");
-    loadingScreen.classList.add("active");
+    scanBtn.onclick = () => {
+        const loadingScreen = document.getElementById("loadingScreen");
+        loadingScreen.classList.add("active");
 
-    const steps = document.querySelectorAll(".ls-step");
+        const steps = document.querySelectorAll(".ls-step");
 
-    // Reset all steps
-    steps.forEach(step => step.classList.remove("done", "active"));
+        // Reset all steps
+        steps.forEach(step => step.classList.remove("done", "active"));
 
-    let i = 0;
+        let i = 0;
 
-    function runStep() {
-        if (i > 0) {
-            steps[i - 1].classList.remove("active");
-            steps[i - 1].classList.add("done");
-            // Replace spinning icon with checkmark on done
-            const icon = steps[i - 1].querySelector(".ls-icon i");
-            icon.className = "ri-check-line";
-        }
-
-        if (i < steps.length) {
-            steps[i].classList.add("active");
-            // Spin the last step's icon
-            if (i === steps.length - 1) {
-                const icon = steps[i].querySelector(".ls-icon i");
-                icon.classList.add("spin");
+        function runStep() {
+            if (i > 0) {
+                steps[i - 1].classList.remove("active");
+                steps[i - 1].classList.add("done");
+                // Replace spinning icon with checkmark on done
+                const icon = steps[i - 1].querySelector(".ls-icon i");
+                icon.className = "ri-check-line";
             }
-            i++;
-            setTimeout(runStep, 1500);
-        } else {
-            console.log("Analysis Complete");
-        }
-    }
 
-    runStep();
-};
+            if (i < steps.length) {
+                steps[i].classList.add("active");
+                // Spin the last step's icon
+                if (i === steps.length - 1) {
+                    const icon = steps[i].querySelector(".ls-icon i");
+                    icon.classList.add("spin");
+                }
+                i++;
+                setTimeout(runStep, 1500);
+            } else {
+                console.log("Analysis Complete");
+            }
+        }
+
+        runStep();
+    };
 </script>
 
 <script>
@@ -267,6 +273,6 @@ scanBtn.onclick = () => {
         fileInput.value = "";
         filePreview.style.display = "none";
     }
-    </script>
+</script>
 
 </html>
