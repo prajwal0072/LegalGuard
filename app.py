@@ -4,11 +4,20 @@ from database import get_connection, create_tables
 from flask import Flask, request, jsonify, render_template, redirect, flash
 import fitz
 from model_engine import analyze_contract
+from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = "supersecret"
 
 create_tables()
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user_id" not in session:
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # ── CORS (local dev) ──────────────────────────────────────────────────────────
 @app.after_request
@@ -19,9 +28,8 @@ def add_cors(response):
     return response
 # ── Pages ─────────────────────────────────────────────────────────────────────
 @app.route("/")
+@login_required
 def index():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
     return render_template("home.html")
 
 
@@ -102,6 +110,7 @@ def logout():
 
 # ── Analysis endpoint ─────────────────────────────────────────────────────────
 @app.route("/analyze", methods=["POST"])
+@login_required
 def analyze():
     if "user_id" not in session:
         return redirect(url_for("login"))
